@@ -1,13 +1,63 @@
 <?php
 require_once '../config/config.php';
+require_once '../config/database.php';
 require_once '../middleware/auth_check.php';
+$labels = [];
+$nilai_portofolio = [];
+$query = mysqli_query($conn, "
+    SELECT tanggal, total_nilai
+    FROM portfolio_history
+    WHERE user_id = {$_SESSION['user_id']}
+    ORDER BY tanggal ASC
+");
 
-// Dummy data (nanti diganti dari DB)
-$total_modal   = 15000000;
-$total_nilai   = 17800000;
-$laba          = $total_nilai - $total_modal;
+if ($query) {
+    while ($row = mysqli_fetch_assoc($query)) {
+        $labels[] = date('M Y', strtotime($row['tanggal']));
+        $nilai_portofolio[] = (float)$row['total_nilai'];
+    }
+}
+
+/* =========================
+   TOTAL MODAL (DARI PORTOFOLIO)
+   ========================= */
+$q_modal = mysqli_query($conn, "
+    SELECT SUM(jumlah_lot * 100 * harga_beli) AS total_modal
+    FROM portofolio
+    WHERE user_id = {$_SESSION['user_id']}
+");
+
+$data_modal = mysqli_fetch_assoc($q_modal);
+$total_modal = $data_modal['total_modal'] ?? 0;
+
+/* =========================
+   NILAI SEKARANG (TERAKHIR)
+   ========================= */
+$q_nilai = mysqli_query($conn, "
+    SELECT total_nilai
+    FROM portfolio_history
+    WHERE user_id = {$_SESSION['user_id']}
+    ORDER BY tanggal DESC
+    LIMIT 1
+");
+
+$data_nilai = mysqli_fetch_assoc($q_nilai);
+$total_nilai = $data_nilai['total_nilai'] ?? 0;
+
+/* =========================
+   LABA / RUGI
+   ========================= */
+$laba = $total_nilai - $total_modal;
+$persen_laba = ($total_modal > 0) ? ($laba / $total_modal) * 100 : 0;
+
+/* =========================
+   PERSENTASE LABA (AMAN)
+   ========================= */
+$persen_laba = ($total_modal > 0)
+    ? ($laba / $total_modal) * 100
+    : 0;
 ?>
-
+<?= number_format($persen_laba, 2); ?>%
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/loader.php'; ?>
 <?php include '../includes/sidebar.php'; ?>
@@ -63,6 +113,16 @@ $laba          = $total_nilai - $total_modal;
 .down {
     color: #dc3545;
 }
+.text-muted {
+    color: #000000ff !important;
+    font-style: italic;
+    text-align: center;
+    background-color: #ffffffff;
+    width: 250px;
+    margin-left: 80%;
+    border-radius: 8px;
+    box-shadow: 2px 10px 20px rgba(0,0,0,.1);
+}
 </style>
 
     <div class="dashboard-hero">
@@ -98,9 +158,10 @@ $laba          = $total_nilai - $total_modal;
             <div class="stat-value">
                 Rp <?= number_format($total_nilai,0,',','.'); ?>
             </div>
-            <div class="stat-change up">
-                ▲ +<?= number_format(($laba/$total_modal)*100,2); ?>%
-            </div>
+        <div class="stat-change <?= $persen_laba >= 0 ? 'up' : 'down'; ?>">
+            <?= $persen_laba >= 0 ? '▲ +' : '▼ '; ?>
+            <?= number_format(abs($persen_laba), 2); ?>%
+        </div>
         </div>
     </div>
 
@@ -121,33 +182,85 @@ $laba          = $total_nilai - $total_modal;
     <!-- MAIN CONTENT -->
     <div class="row g-4">
 
-        <!-- CHART -->
-        <div class="col-md-8">
-            <div class="card-glass">
-                <h6 class="fw-semibold mb-3">Performa Investasi</h6>
-                <div class="text-muted">
-                    Grafik akan menampilkan tren nilai portofolio saham.
-                </div>
-                <div class="mt-3 text-center text-muted">
-                    📉 Chart akan ditambahkan (Chart.js)
-                </div>
+    <!-- CHART -->
+    <div class="col-md-8">
+        <div class="card-glass">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-semibold mb-0">Performa Investasi</h6>
+                <span class="text-muted small">6 bulan terakhir</span>
             </div>
-        </div>
+<?php if (!empty($labels)): ?>
+                <canvas id="portfolioChart" height="120"></canvas>
+            <?php else: ?>
+                <div class="text-center text-muted py-5">
+                    📉 Belum ada data performa investasi
+                </div>
+            <?php endif; ?>
+
+
 
         <!-- INSIGHT -->
-        <div class="col-md-4">
-            <div class="card-glass insight">
-                <h6 class="fw-semibold mb-2">Smart Insight</h6>
-                <p class="mb-0 opacity-90">
-                    Portofolio Anda mengalami kenaikan sebesar
-                    <strong><?= number_format(($laba/$total_modal)*100,2); ?>%</strong>
-                    dibanding modal awal.
-                </p>
-            </div>
+    <div class="col-md-4">
+        <div class="card-glass insight">
+            <h6 class="fw-semibold mb-2">Smart Insight</h6>
+            <p class="mb-0 opacity-90">
+                Portofolio Anda mengalami kenaikan sebesar
+                <strong><?= number_format($persen_laba, 2); ?>%</strong>
+                dibanding modal awal.
+            </p>
         </div>
+    </div>
 
     </div>
 
 </div>
+<script>
+const ctx = document.getElementById('portfolioChart').getContext('2d');
+
+// Data dari PHP
+const labels = <?= json_encode($labels); ?>;
+const dataPortofolio = <?= json_encode($nilai_portofolio); ?>;
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Nilai Portofolio (Rp)',
+            data: dataPortofolio,
+            fill: true,
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13,110,253,.15)',
+            tension: 0.4,
+            pointRadius: 4,
+            pointHoverRadius: 7
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return 'Rp ' + context.parsed.y.toLocaleString('id-ID');
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                ticks: {
+                    callback: function(value) {
+                        return 'Rp ' + value.toLocaleString('id-ID');
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
 
 <?php include '../includes/footer.php'; ?>
