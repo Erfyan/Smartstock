@@ -163,6 +163,11 @@ if (isset($_SESSION['user_id'])) {
             Platform modern untuk mengelola, memantau, dan
             menganalisis investasi saham secara cerdas dan interaktif.
         </p>
+        <!-- TOP NAV ACTION -->
+        <div class="position-fixed top-0 end-0 p-4" style="z-index:10;">
+            <a href="about.php" class="btn btn-outline-light btn-sm me-2">About</a>
+            <a href="contact.php" class="btn btn-outline-light btn-sm">Contact</a>
+        </div>
 
         <a href="<?= base_url('auth/auth.php'); ?>" class="btn btn-light btn-cta">
             Mulai Sekarang
