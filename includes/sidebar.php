@@ -23,7 +23,7 @@
     height: 100vh;
     background: linear-gradient(180deg, #0d6efd, #6610f2);
     color: white;
-    padding: 90px 16px 20px;
+    padding: 24px 16px 20px; /* 🔥 DIUBAH */
     z-index: 1101;
     transition: left .35s cubic-bezier(.4,0,.2,1);
 }
@@ -36,6 +36,27 @@
 .sidebar-open .sidebar-overlay {
     opacity: 1;
     visibility: visible;
+}
+
+/* BRAND */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px 24px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+}
+
+.sidebar-brand img {
+    width: 36px;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,.4));
+}
+
+.sidebar-brand span {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: .3px;
 }
 
 /* LINK */
@@ -62,11 +83,21 @@
 
 <!-- SIDEBAR -->
 <div class="sidebar">
+
+    <!-- LOGO / BRAND -->
+    <div class="sidebar-brand">
+        <img src="<?= base_url('uploads/logo-white.png'); ?>" alt="SmartStock Logo">
+        <span>SmartStock</span>
+    </div>
+
+    <!-- MENU -->
     <a href="<?= base_url('dashboard/index.php'); ?>">📊 Dashboard</a>
     <a href="<?= base_url('dashboard/portfolio.php'); ?>">💼 Portofolio</a>
     <a href="<?= base_url('dashboard/transaksi.php'); ?>">🔁 Transaksi</a>
     <a href="<?= base_url('auth/logout.php'); ?>">🚪 Logout</a>
+
 </div>
+
 <script>
 function toggleSidebar() {
     document.body.classList.toggle('sidebar-open');

@@ -57,12 +57,17 @@ $persen_laba = ($total_modal > 0)
     ? ($laba / $total_modal) * 100
     : 0;
 ?>
-<?= number_format($persen_laba, 2); ?>%
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/loader.php'; ?>
 <?php include '../includes/sidebar.php'; ?>
 
 <style>
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 100%;
+    height: 100%;
+    }
 .dashboard {
     padding: 32px;
     transition: all .4s cubic-bezier(.4,0,.2,1);
@@ -116,26 +121,45 @@ $persen_laba = ($total_modal > 0)
 .text-muted {
     color: #000000ff !important;
     font-style: italic;
-    text-align: center;
+    text-align: left;
     background-color: #ffffffff;
-    width: 250px;
+    border-radius: 8px;
+    box-shadow: 2px 10px 20px rgba(0,0,0,.1);
+}
+.text-mutesmall {
+    color: #000000ff !important;
+    font-style: italic;
+    text-align: right;
+    background-color: #ffffffff;
+    width: 20%px;
     margin-left: 80%;
     border-radius: 8px;
     box-shadow: 2px 10px 20px rgba(0,0,0,.1);
 }
+.card-glass.insight {
+    background: rgba(13,110,253,.1);
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: 0 20px 40px rgba(0,0,0,.15);
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+}
 </style>
 
-    <div class="dashboard-hero">
-        <h3 class="fw-bold mb-1">
-            Halo, <?= $_SESSION['nama']; ?> 👋
-        </h3>
-        <p class="opacity-90 mb-0">
-            Pantau dan kelola investasi saham Anda dengan lebih cerdas hari ini.
-            <div class="text-muted">
-                <?= date('l, d F Y'); ?>
-            </div>
-        </p>
+    <div class="dashboard-hero d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h3 class="fw-bold mb-1">
+                Halo, <?= $_SESSION['nama']; ?> 👋
+            </h3>
+            <p class="opacity-90 mb-0">
+                Pantau dan kelola investasi saham Anda dengan lebih cerdas hari ini.
+            </p>
+        </div>
+
+        <div class="bg-white text-dark px-3 py-2 rounded-3 shadow-sm mt-3 mt-md-0">
+            <?= date('l, d F Y'); ?>
+        </div>
     </div>
+
 
     <!-- STAT CARDS -->
     <div class="row g-4 mb-4">
@@ -180,87 +204,75 @@ $persen_laba = ($total_modal > 0)
 
 
     <!-- MAIN CONTENT -->
-    <div class="row g-4">
+<div class="row g-4">
 
     <!-- CHART -->
-    <div class="col-md-8">
-        <div class="card-glass">
+    <div class="col-xl-8 col-md-12">
+        <div class="card-glass h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="fw-semibold mb-0">Performa Investasi</h6>
-                <span class="text-muted small">6 bulan terakhir</span>
+                <span class="badge bg-light text-dark">
+                    6 bulan terakhir
+                </span>
             </div>
-<?php if (!empty($labels)): ?>
+
+            <?php if (!empty($labels)): ?>
                 <canvas id="portfolioChart" height="120"></canvas>
             <?php else: ?>
                 <div class="text-center text-muted py-5">
                     📉 Belum ada data performa investasi
                 </div>
             <?php endif; ?>
+        </div>
+    </div>
 
-
-
-        <!-- INSIGHT -->
-    <div class="col-md-4">
-        <div class="card-glass insight">
+    <!-- INSIGHT -->
+    <div class="col-xl-4 col-md-12">
+        <div class="card-glass insight h-100">
             <h6 class="fw-semibold mb-2">Smart Insight</h6>
             <p class="mb-0 opacity-90">
-                Portofolio Anda mengalami kenaikan sebesar
-                <strong><?= number_format($persen_laba, 2); ?>%</strong>
+                Portofolio Anda mengalami
+                <strong><?= $persen_laba >= 0 ? 'kenaikan' : 'penurunan'; ?></strong>
+                sebesar
+                <strong><?= number_format(abs($persen_laba), 2); ?>%</strong>
                 dibanding modal awal.
             </p>
         </div>
     </div>
 
+</div>
+
     </div>
 
 </div>
+<?php if (!empty($labels)): ?>
 <script>
-const ctx = document.getElementById('portfolioChart').getContext('2d');
+document.addEventListener('DOMContentLoaded', function () {
+    const canvas = document.getElementById('portfolioChart');
+    if (!canvas) return;
 
-// Data dari PHP
-const labels = <?= json_encode($labels); ?>;
-const dataPortofolio = <?= json_encode($nilai_portofolio); ?>;
-
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Nilai Portofolio (Rp)',
-            data: dataPortofolio,
-            fill: true,
-            borderColor: '#0d6efd',
-            backgroundColor: 'rgba(13,110,253,.15)',
-            tension: 0.4,
-            pointRadius: 4,
-            pointHoverRadius: 7
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        return 'Rp ' + context.parsed.y.toLocaleString('id-ID');
-                    }
-                }
-            }
+    new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: <?= json_encode($labels); ?>,
+            datasets: [{
+                label: 'Nilai Portofolio',
+                data: <?= json_encode($nilai_portofolio); ?>,
+                fill: true,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13,110,253,.15)',
+                tension: 0.4,
+                pointRadius: 4
+            }]
         },
-        scales: {
-            y: {
-                ticks: {
-                    callback: function(value) {
-                        return 'Rp ' + value.toLocaleString('id-ID');
-                    }
-                }
-            }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
         }
-    }
+    });
 });
 </script>
+<?php endif; ?>
 
 <?php include '../includes/footer.php'; ?>

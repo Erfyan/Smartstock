@@ -9,7 +9,6 @@
     text-align: center;
     color: #6c757d;
     font-size: 14px;
-    margin-left: 260px;
 }
 </style>
 
