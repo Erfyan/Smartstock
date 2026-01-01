@@ -57,6 +57,24 @@ $persen_laba = ($total_modal > 0)
     ? ($laba / $total_modal) * 100
     : 0;
 ?>
+<?php
+$user_id = $_SESSION['user_id'];
+
+$q = $conn->query("
+    SELECT tanggal, nilai_portofolio
+    FROM insight_log
+    WHERE user_id = $user_id
+    ORDER BY tanggal ASC
+");
+
+$labels = [];
+$values = [];
+
+while ($row = $q->fetch_assoc()) {
+    $labels[] = $row['tanggal'];
+    $values[] = (int)$row['nilai_portofolio'];
+}
+?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/loader.php'; ?>
 <?php include '../includes/sidebar.php'; ?>
@@ -262,13 +280,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 borderColor: '#0d6efd',
                 backgroundColor: 'rgba(13,110,253,.15)',
                 tension: 0.4,
-                pointRadius: 4
+                pointRadius: 3
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } }
+            maintainAspectRatio: false, // BIAR IKUT WRAPPER
+            scales: {
+                x: {
+                    ticks: {
+                        maxTicksLimit: 6
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
         }
     });
 });
