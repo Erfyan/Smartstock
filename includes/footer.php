@@ -3,7 +3,6 @@
 ?>
 
 <style>
-/* FOOTER */
 .footer {
     padding: 20px;
     text-align: center;
@@ -16,9 +15,11 @@
     © <?= date('Y'); ?> SmartStock Sistem • All rights reserved
 </div>
 
-<!-- Bootstrap JS -->
-<script src="../assets/bootstrap-5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap JS (WAJIB untuk modal) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </body>
 </html>
