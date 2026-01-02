@@ -47,6 +47,37 @@ $portfolio = mysqli_query($conn, "
 .table tbody tr:hover {
     background: rgba(13,110,253,.05);
 }
+.stock-box {
+    background: rgba(13,110,253,.08);
+    border-radius: 18px;
+    padding: 16px;
+    text-align: center;
+    transition: all .3s ease;
+}
+
+.stock-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.15);
+}
+
+.stock-code {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.stock-price {
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.stock-up {
+    color: #198754;
+}
+
+.stock-down {
+    color: #dc3545;
+}
+
 </style>
 
 <div class="dashboard container-fluid">
@@ -102,5 +133,59 @@ $portfolio = mysqli_query($conn, "
     </div>
 
 </div>
+<!-- REAL-TIME STOCK PRICE -->
+<div class="card-glass mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-semibold mb-0">Harga Saham Real-Time</h6>
+        <span class="badge bg-success">LIVE</span>
+    </div>
+
+    <div id="realtime-stock" class="row g-3">
+        <script>
+            const stocks = [
+                { kode: 'BBCA', harga: 9200 },
+                { kode: 'TLKM', harga: 4100 },
+                { kode: 'BRIS', harga: 2500 },
+                { kode: 'ANTM', harga: 1800 }
+            ];
+
+            function renderStocks() {
+                const container = document.getElementById('realtime-stock');
+                container.innerHTML = '';
+
+                stocks.forEach(stock => {
+                    // simulasi perubahan harga
+                    const change = (Math.random() * 100 - 50).toFixed(0);
+                    const newPrice = stock.harga + parseInt(change);
+                    const isUp = change >= 0;
+
+                    stock.harga = newPrice;
+
+                    container.innerHTML += `
+                        <div class="col-md-3 col-sm-6">
+                            <div class="stock-box">
+                                <div class="stock-code">${stock.kode}</div>
+                                <div class="stock-price">
+                                    Rp ${newPrice.toLocaleString('id-ID')}
+                                </div>
+                                <div class="${isUp ? 'stock-up' : 'stock-down'}">
+                                    ${isUp ? '▲' : '▼'} ${Math.abs(change)}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // render awal
+            renderStocks();
+
+            // update tiap 5 detik
+            setInterval(renderStocks, 5000);
+            </script>
+
+    </div>
+</div>
+
 
 <?php include '../includes/footer.php'; ?>
